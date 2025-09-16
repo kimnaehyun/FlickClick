@@ -5,7 +5,7 @@ import {
   getReviewCountByUId,
   QUERY_KEYS,
 } from "../../api/mypageInfo";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import SideToggleList from "../notification/SideToggleList";
@@ -34,28 +34,29 @@ export default function Notification() {
     myPage: false,
   });
 
-  const { isLoggedIn, user, setUser, setIsLoggedin } = useAuth();
+  const { user, setUser, setIsLoggedin } = useAuth();
 
   // TanStack Query를 사용하여 사용자 데이터 가져오기
-  const { data: counts = { reviewCount: 0, discussCount: 0, clipCount: 0 } } = useQuery({
-    queryKey: [QUERY_KEYS.USER_COUNTS, user?.id],
-    queryFn: async () => {
-      if (!user?.id) return { reviewCount: 0, discussCount: 0, clipCount: 0 };
-      
-      const [review, discuss, clip] = await Promise.all([
-        getReviewCountByUId(user.id),
-        getArgumentCountByUId(user.id),
-        getClipCountByUId(user.id),
-      ]);
+  const { data: counts = { reviewCount: 0, discussCount: 0, clipCount: 0 } } =
+    useQuery({
+      queryKey: [QUERY_KEYS.USER_COUNTS, user?.id],
+      queryFn: async () => {
+        if (!user?.id) return { reviewCount: 0, discussCount: 0, clipCount: 0 };
 
-      return {
-        reviewCount: review || 0,
-        discussCount: discuss || 0,
-        clipCount: clip || 0,
-      };
-    },
-    enabled: !!user?.id,
-  });
+        const [review, discuss, clip] = await Promise.all([
+          getReviewCountByUId(user.id),
+          getArgumentCountByUId(user.id),
+          getClipCountByUId(user.id),
+        ]);
+
+        return {
+          reviewCount: review || 0,
+          discussCount: discuss || 0,
+          clipCount: clip || 0,
+        };
+      },
+      enabled: !!user?.id,
+    });
 
   const handleToggleClicked = useCallback((key: string) => {
     setToggleClicked((prev) => ({
@@ -69,7 +70,7 @@ export default function Notification() {
       await authAPI.logOut();
       setUser(null);
       setIsLoggedin(false);
-      
+
       // 강제로 페이지 새로고침
       window.location.replace("/");
     } catch (error) {
